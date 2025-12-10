@@ -7,14 +7,8 @@
 <link rel="icon" type="image/png" href="https://i.ibb.co/Kty8MqP/ELITE-TRANSPORT.png">
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f6f7fb;
-  margin: 0;
-  padding: 20px;
-  color: black;
-}
-h1, h2 { margin: 0 0 12px 0; color: black; }
+body { font-family: Arial, sans-serif; background: #f6f7fb; margin: 0; padding: 20px; color: black; }
+h1,h2 { margin: 0 0 12px 0; color: black; }
 .container { max-width:900px; margin:auto; background:white; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05); position: relative; z-index:1;}
 .container-wrapper { position: relative; overflow: hidden; max-width: 900px; margin: auto; height: auto;}
 input, select, button { padding:8px; margin-bottom:12px; border-radius:6px; border:1px solid #ccc; width:100%; box-sizing:border-box;}
@@ -34,43 +28,45 @@ button.ghost { background:white; border:1px solid #ccc; color:black;}
 .snowflake { position: absolute; top: -10px; color: white; animation-name: snow; animation-iteration-count: infinite; animation-timing-function: linear; pointer-events:none; }
 </style>
 
+<!-- Load Paystack first -->
 <script src="https://js.paystack.co/v1/inline.js"></script>
 </head>
 <body>
+
 <div class="container-wrapper">
   <div class="container">
-  <h1>🎄 Elite Transport — Christmas Break Bus Booking 🎄</h1>
-  <img class="logo" src="https://i.ibb.co/Kty8MqP/ELITE-TRANSPORT.png" alt="Elite Transport Logo">
+    <h1>🎄 Elite Transport — Christmas Break Bus Booking 🎄</h1>
+    <img class="logo" src="https://i.ibb.co/Kty8MqP/ELITE-TRANSPORT.png" alt="Elite Transport Logo">
 
-  <h2>Passenger Details</h2>
-  <input type="text" id="fullname" placeholder="Full Name"><br>
-  <input type="text" id="phone" placeholder="Phone Number"><br>
+    <h2>Passenger Details</h2>
+    <input type="text" id="fullname" placeholder="Full Name"><br>
+    <input type="text" id="phone" placeholder="Phone Number"><br>
 
-  <label>Travel Date</label>
-  <select id="date">
-    <option value="2025-12-20">20th December</option>
-    <option value="2025-12-21">21st December</option>
-  </select>
-  <p>Boarding Location: <strong>UDS Campus</strong></p>
-  <p>Departure: <strong>7AM</strong></p><br>
+    <label>Travel Date</label>
+    <select id="date">
+      <option value="2025-12-20">20th December</option>
+      <option value="2025-12-21">21st December</option>
+    </select>
+    <p>Boarding Location: <strong>UDS Campus</strong></p>
+    <p>Departure: <strong>7AM</strong></p><br>
 
-  <label>Route</label>
-  <select id="route">
-    <option value="Accra">Accra — ₵240</option>
-    <option value="Kumasi">Kumasi — ₵140</option>
-    <option value="Sunyani">Sunyani — ₵140</option>
-    <option value="Takoradi">Takoradi — ₵240</option>
-  </select>
+    <label>Route</label>
+    <select id="route">
+      <option value="Accra">Accra — ₵240</option>
+      <option value="Kumasi">Kumasi — ₵140</option>
+      <option value="Sunyani">Sunyani — ₵140</option>
+      <option value="Takoradi">Takoradi — ₵240</option>
+    </select>
 
-  <h2>Select Your Seat(s) (1–49)</h2>
-  <div id="seatmap" class="seatmap"></div>
+    <h2>Select Your Seat(s) (1–49)</h2>
+    <div id="seatmap" class="seatmap"></div>
 
-  <div class="summary">
-    <p>Seats Selected: <span id="selectedCount">0</span></p>
-    <p>Total(online charges apply): ₵<span id="total">0</span></p>
-  </div>
-  <br>
-  <button id="book">Pay & Book Now</button>
+    <div class="summary">
+      <p>Seats Selected: <span id="selectedCount">0</span></p>
+      <p>Total(online charges apply): ₵<span id="total">0</span></p>
+    </div>
+    <br>
+    <button id="book">Pay & Book Now</button>
   </div>
 </div>
 
@@ -85,15 +81,12 @@ button.ghost { background:white; border:1px solid #ccc; color:black;}
 <script type="module">
 // ===== Config =====
 const ROUTE_PRICES = { "Accra": 245, "Kumasi": 143, "Sunyani": 143, "Takoradi": 245 };
-const WORKER_URL = "https://odd-silence-7d6e.elitetransportghana.workers.dev/"; 
+const WORKER_URL = "https://odd-silence-7d6e.elitetransportghana.workers.dev/";
 const seats = {};
 const selected = new Set();
 const seatmapEl = document.getElementById("seatmap");
 const selectedCountEl = document.getElementById("selectedCount");
 const totalEl = document.getElementById("total");
-
-// Make PaystackPop global in module context
-const PaystackPop = window.PaystackPop;
 
 // ===== Build Seats =====
 function buildSeats(){
@@ -158,19 +151,8 @@ async function lockSeats(busId, seatsArr, user){
 }
 
 // ===== Pay & Book =====
-<script src="https://js.paystack.co/v1/inline.js"></script>
-<script type="module">
-async function loadPaystack() {
-  // Wait until PaystackPop exists
-  while (!window.PaystackPop) {
-    await new Promise(r => setTimeout(r, 50));
-  }
-  return window.PaystackPop;
-}
-
 document.getElementById("book").addEventListener("click", async()=>{
-  const PaystackPop = await loadPaystack();
-
+  const PaystackPop = window.PaystackPop; // get PaystackPop globally
   const name = document.getElementById("fullname").value.trim();
   const phone = document.getElementById("phone").value.trim();
   const date = document.getElementById("date").value;
@@ -210,7 +192,6 @@ document.getElementById("book").addEventListener("click", async()=>{
 
   handler.openIframe();
 });
-</script>
 
 // ===== Listeners =====
 document.getElementById("route").addEventListener("change", ()=>{
