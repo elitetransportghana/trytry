@@ -7,209 +7,168 @@
 <link rel="icon" type="image/png" href="https://i.ibb.co/Kty8MqP/ELITE-TRANSPORT.png">
 
 <style>
-body { font-family: Arial, sans-serif; background: #f6f7fb; margin: 0; padding: 20px; color: black; }
-h1,h2 { margin: 0 0 12px 0; color: black; }
-.container { max-width:900px; margin:auto; background:white; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05); position: relative; z-index:1;}
-.container-wrapper { position: relative; overflow: hidden; max-width: 900px; margin: auto; height: auto;}
+body {
+  font-family: Arial, sans-serif;
+  background: #f6f7fb;
+  margin: 0;
+  padding: 20px;
+  color: black;
+}
+h1, h2 { margin: 0 0 12px 0; color: black; }
+.container { max-width:900px; margin:auto; background:white; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05);}
 input, select, button { padding:8px; margin-bottom:12px; border-radius:6px; border:1px solid #ccc; width:100%; box-sizing:border-box;}
 button { background:#0ea5a4; color:white; border:none; cursor:pointer;}
-button.ghost { background:white; border:1px solid #ccc; color:black;}
 .seatmap { display:grid; grid-template-columns:repeat(7,50px); gap:8px; margin-bottom:12px;}
 .seat { width:50px; height:50px; background:#eef2ff; display:flex; align-items:center; justify-content:center; border-radius:6px; cursor:pointer; user-select:none;}
 .seat.selected { background:#06b6d4; color:white;}
 .seat.taken { background:#111827; color:white; cursor:not-allowed; opacity:0.7;}
 .aisle { width:20px;}
 .summary { background:#fbfdff; padding:12px; border-radius:8px; border:1px solid #eef2ff; margin-top:12px;}
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 9999;}
-.modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 90%; z-index: 10000;}
-.logo { display: block; margin: 0 auto 15px auto; width: 120px; height: 50px; object-fit: contain; }
-/* ===== Snowflakes ===== */
-@keyframes snow { 0% { transform: translateY(-10px) translateX(0); } 50% { transform: translateY(50vh) translateX(var(--sway)); } 100% { transform: translateY(100vh) translateX(0); } }
-.snowflake { position: absolute; top: -10px; color: white; animation-name: snow; animation-iteration-count: infinite; animation-timing-function: linear; pointer-events:none; }
 </style>
 
-<!-- Load Paystack first -->
+<!-- Paystack Inline -->
 <script src="https://js.paystack.co/v1/inline.js"></script>
 </head>
 <body>
+<div class="container">
+  <h1>🎄 Elite Transport — Christmas Break Bus Booking 🎄</h1>
+  <img src="https://i.ibb.co/Kty8MqP/ELITE-TRANSPORT.png" alt="Elite Transport Logo" style="display:block;margin:0 auto 15px auto;width:120px;height:50px;object-fit:contain;">
 
-<div class="container-wrapper">
-  <div class="container">
-    <h1>🎄 Elite Transport — Christmas Break Bus Booking 🎄</h1>
-    <img class="logo" src="https://i.ibb.co/Kty8MqP/ELITE-TRANSPORT.png" alt="Elite Transport Logo">
+  <h2>Passenger Details</h2>
+  <input type="text" id="fullname" placeholder="Full Name">
+  <input type="text" id="phone" placeholder="Phone Number">
 
-    <h2>Passenger Details</h2>
-    <input type="text" id="fullname" placeholder="Full Name"><br>
-    <input type="text" id="phone" placeholder="Phone Number"><br>
+  <label>Travel Date</label>
+  <select id="date">
+    <option value="2025-12-20">20th December</option>
+    <option value="2025-12-21">21st December</option>
+  </select>
+  <p>Boarding Location: <strong>UDS Campus</strong></p>
+  <p>Departure: <strong>7AM</strong></p>
 
-    <label>Travel Date</label>
-    <select id="date">
-      <option value="2025-12-20">20th December</option>
-      <option value="2025-12-21">21st December</option>
-    </select>
-    <p>Boarding Location: <strong>UDS Campus</strong></p>
-    <p>Departure: <strong>7AM</strong></p><br>
+  <label>Route</label>
+  <select id="route">
+    <option value="Accra">Accra — ₵240</option>
+    <option value="Kumasi">Kumasi — ₵140</option>
+    <option value="Sunyani">Sunyani — ₵140</option>
+    <option value="Takoradi">Takoradi — ₵240</option>
+  </select>
 
-    <label>Route</label>
-    <select id="route">
-      <option value="Accra">Accra — ₵240</option>
-      <option value="Kumasi">Kumasi — ₵140</option>
-      <option value="Sunyani">Sunyani — ₵140</option>
-      <option value="Takoradi">Takoradi — ₵240</option>
-    </select>
+  <h2>Select Your Seat(s) (1–49)</h2>
+  <div id="seatmap" class="seatmap"></div>
 
-    <h2>Select Your Seat(s) (1–49)</h2>
-    <div id="seatmap" class="seatmap"></div>
-
-    <div class="summary">
-      <p>Seats Selected: <span id="selectedCount">0</span></p>
-      <p>Total(online charges apply): ₵<span id="total">0</span></p>
-    </div>
-    <br>
-    <button id="book">Pay & Book Now</button>
+  <div class="summary">
+    <p>Seats Selected: <span id="selectedCount">0</span></p>
+    <p>Total (online charges apply): ₵<span id="total">0</span></p>
   </div>
+
+  <button id="book">Pay & Book Now</button>
 </div>
 
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <h2>Elite Transport — Booking Receipt</h2>
-    <div id="receiptBody"></div>
-    <button id="closeModal">Close</button>
-  </div>
-</div>
-
-<script type="module">
+<script>
 // ===== Config =====
 const ROUTE_PRICES = { "Accra": 245, "Kumasi": 143, "Sunyani": 143, "Takoradi": 245 };
-const WORKER_URL = "https://odd-silence-7d6e.elitetransportghana.workers.dev/";
 const seats = {};
 const selected = new Set();
 const seatmapEl = document.getElementById("seatmap");
 const selectedCountEl = document.getElementById("selectedCount");
 const totalEl = document.getElementById("total");
 
-// ===== Build Seats =====
-function buildSeats(){
+// ===== Build Seat Map =====
+function buildSeats() {
   seatmapEl.innerHTML = "";
-  for(let i=1;i<=49;i++){
+  for(let i=1; i<=49; i++){
     seats[i] = seats[i] || {status:"free"};
     const div = document.createElement("div");
-    div.className="seat";
-    div.dataset.id=i;
-    div.textContent=i;
+    div.className = "seat";
+    div.dataset.id = i;
+    div.textContent = i;
     div.addEventListener("click", ()=> selectSeat(i));
     seatmapEl.appendChild(div);
-    if(i%7===0 && i<49){ const aisle=document.createElement('div'); aisle.className='aisle'; seatmapEl.appendChild(aisle); }
+    if(i%7===0 && i<49){
+      const aisle = document.createElement('div');
+      aisle.className = 'aisle';
+      seatmapEl.appendChild(aisle);
+    }
   }
 }
 
-function selectSeat(i){
-  if(seats[i].status==="taken") return;
-  if(seats[i].status==="selected"){ seats[i].status="free"; selected.delete(i); }
-  else { seats[i].status="selected"; selected.add(i); }
+// ===== Seat Selection =====
+function selectSeat(i) {
+  if(seats[i].status === "taken") return;
+  if(selected.has(i)){
+    selected.delete(i);
+  } else {
+    selected.add(i);
+  }
   refreshSeatsUI();
   updateSummary();
 }
 
-// ===== Fetch Seats from Worker =====
-async function fetchSeats(){
-  const route = document.getElementById("route").value;
-  const date = document.getElementById("date").value;
-  const busId = `${date}_${route}`;
-  const res = await fetch(`${WORKER_URL}/seats/${busId}`);
-  const data = await res.json();
-  for(let i=1;i<=49;i++) seats[i].status="free"; // reset
-  data.forEach(s => seats[s.id] = {status: s.status});
-  refreshSeatsUI();
-}
-
-// ===== Refresh UI =====
-function refreshSeatsUI(){
+// ===== Refresh Seats UI =====
+function refreshSeatsUI() {
   document.querySelectorAll(".seat").forEach(el=>{
     const id = parseInt(el.dataset.id);
     el.classList.remove("selected","taken");
     if(selected.has(id)) el.classList.add("selected");
-    if(seats[id] && (seats[id].status==="locked" || seats[id].status==="booked")) el.classList.add("taken");
+    if(seats[id].status === "taken") el.classList.add("taken");
   });
 }
 
-function updateSummary(){
+// ===== Update Summary =====
+function updateSummary() {
   const route = document.getElementById("route").value;
   const price = ROUTE_PRICES[route];
   selectedCountEl.textContent = selected.size;
-  totalEl.textContent = (selected.size*price).toFixed(2);
+  totalEl.textContent = (selected.size * price).toFixed(2);
 }
 
-// ===== Booking =====
-async function lockSeats(busId, seatsArr, user){
-  const res = await fetch(`${WORKER_URL}/lock-seat`,{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ busId, seatId: seatsArr, user })
-  });
-  return res.json();
-}
-
-// ===== Pay & Book =====
-document.getElementById("book").addEventListener("click", async()=>{
-  const PaystackPop = window.PaystackPop; // get PaystackPop globally
+// ===== Booking with Paystack =====
+document.getElementById("book").addEventListener("click", ()=>{
   const name = document.getElementById("fullname").value.trim();
   const phone = document.getElementById("phone").value.trim();
-  const date = document.getElementById("date").value;
   const route = document.getElementById("route").value;
+  const date = document.getElementById("date").value;
 
-  if(!name || !phone){ alert("Enter name and phone number"); return; }
-  if(selected.size===0){ alert("Select at least one seat"); return; }
-
-  const seatsArr = Array.from(selected);
-  const busId = `${date}_${route}`;
-  const lockRes = await lockSeats(busId, seatsArr, phone);
-
-  if(lockRes.message === "Not available"){ 
-    alert("Some seats are already taken"); 
-    fetchSeats(); 
-    return; 
+  if(!name || !phone){
+    alert("Enter name and phone number");
+    return;
+  }
+  if(selected.size === 0){
+    alert("Select at least one seat");
+    return;
   }
 
-  const amount = seatsArr.length * ROUTE_PRICES[route] * 100;
+  const seatsArr = Array.from(selected);
+  const amount = seatsArr.length * ROUTE_PRICES[route] * 100; // in pesewas
 
   const handler = PaystackPop.setup({
-      key: "pk_test_d1cfdee00c5d5743830737d892e4e86705a4d9cd",
-      email: phone+"@example.com",
-      amount,
-      currency:"GHS",
-      ref: 'ET'+Math.floor(Math.random()*1000000000+1),
-      metadata:{ busId, seats: seatsArr, name, phone, route, date },
-      callback: function(response){
-          alert("Payment successful! Your booking is confirmed.");
-          selected.clear();
-          fetchSeats();
-      },
-      onClose: function(){
-          alert("Payment not completed");
-      }
+    key: "pk_test_d1cfdee00c5d5743830737d892e4e86705a4d9cd",
+    email: phone + "@example.com",
+    amount: amount,
+    currency: "GHS",
+    ref: 'ET' + Math.floor(Math.random()*1000000000+1),
+    metadata: { name, phone, route, date, seats: seatsArr },
+    callback: function(response){
+      alert("Payment successful! Ref: " + response.reference);
+      // Here you can call your Worker API to finalize seat booking
+      seatsArr.forEach(id=> seats[id].status="taken");
+      selected.clear();
+      refreshSeatsUI();
+      updateSummary();
+    },
+    onClose: function(){
+      alert("Payment cancelled");
+    }
   });
 
   handler.openIframe();
 });
 
-// ===== Listeners =====
-document.getElementById("route").addEventListener("change", ()=>{
-  selected.clear();
-  fetchSeats();
-  updateSummary();
-});
-document.getElementById("date").addEventListener("change", ()=>{
-  selected.clear();
-  fetchSeats();
-  updateSummary();
-});
-
-// ===== Init =====
+// ===== Initialize =====
 buildSeats();
-fetchSeats();
+refreshSeatsUI();
 updateSummary();
 </script>
-
 </body>
 </html>
