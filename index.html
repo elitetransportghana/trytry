@@ -1,192 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bus Seat Booking</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, #001f3f, #0074D9);
-      color: #fff;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elite Transport — Christmas Break Bus Booking</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/Kty8MqP/ELITE-TRANSPORT.png">
 
-    h1 {
-      text-align: center;
-      margin: 20px 0;
-    }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f6f7fb;
+  margin: 0;
+  padding: 20px;
+  color: black;
+}
+h1, h2 { margin: 0 0 12px 0; color: black; }
+.container { max-width:900px; margin:auto; background:white; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05); position: relative; z-index:1;}
+.container-wrapper { position: relative; overflow: hidden; max-width: 900px; margin: auto; height: auto;}
+input, select, button { padding:8px; margin-bottom:12px; border-radius:6px; border:1px solid #ccc; width:100%; box-sizing:border-box;}
+button { background:#0ea5a4; color:white; border:none; cursor:pointer;}
+button.ghost { background:white; border:1px solid #ccc; color:black;}
+.seatmap { display:grid; grid-template-columns:repeat(7,50px); gap:8px; margin-bottom:12px;}
+.seat { width:50px; height:50px; background:#eef2ff; display:flex; align-items:center; justify-content:center; border-radius:6px; cursor:pointer; user-select:none;}
+.seat.selected { background:#06b6d4; color:white;}
+.seat.taken { background:#111827; color:white; cursor:not-allowed; opacity:0.7;}
+.aisle { width:20px;}
+.summary { background:#fbfdff; padding:12px; border-radius:8px; border:1px solid #eef2ff; margin-top:12px;}
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 9999;}
+.modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 90%; z-index: 10000;}
+.logo { display: block; margin: 0 auto 15px auto; width: 120px; height: 50px; object-fit: contain; }
+/* ===== Snowflakes ===== */
+@keyframes snow { 0% { transform: translateY(-10px) translateX(0); } 50% { transform: translateY(50vh) translateX(var(--sway)); } 100% { transform: translateY(100vh) translateX(0); } }
+.snowflake { position: absolute; top: -10px; color: white; animation-name: snow; animation-iteration-count: infinite; animation-timing-function: linear; pointer-events:none; }
+</style>
 
-    .bus-selection {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-
-    select {
-      padding: 8px;
-      margin: 0 10px;
-      font-size: 16px;
-    }
-
-    #seat-map {
-      display: grid;
-      grid-template-columns: repeat(7, 50px);
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .seat {
-      width: 50px;
-      height: 50px;
-      background: #2ecc71;
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .seat.locked {
-      background: #f39c12;
-      cursor: not-allowed;
-    }
-
-    .seat.booked {
-      background: #e74c3c;
-      cursor: not-allowed;
-    }
-
-    .seat.selected {
-      background: #3498db;
-    }
-
-    #checkout-btn {
-      display: block;
-      margin: 20px auto;
-      padding: 10px 20px;
-      font-size: 18px;
-      cursor: pointer;
-      background: #ffdc00;
-      color: #000;
-      border: none;
-      border-radius: 5px;
-    }
-
-    /* Snowflake effect */
-    .snowflake {
-      position: fixed;
-      top: -10px;
-      color: #fff;
-      font-size: 1em;
-      user-select: none;
-      pointer-events: none;
-      z-index: 1000;
-      animation: fall linear infinite;
-    }
-
-    @keyframes fall {
-      0% { transform: translateY(0) rotate(0deg); }
-      100% { transform: translateY(100vh) rotate(360deg); }
-    }
-  </style>
+<script src="https://js.paystack.co/v1/inline.js"></script>
 </head>
 <body>
+<div class="container-wrapper">
+  <div class="container">
+  <h1>🎄 Elite Transport — Christmas Break Bus Booking 🎄</h1>
+  <img class="logo" src="https://i.ibb.co/Kty8MqP/ELITE-TRANSPORT.png" alt="Elite Transport Logo">
 
-  <h1>🎄 Elite Transport-Bus Seat Booking 🎄</h1>
+  <h2>Passenger Details</h2>
+  <input type="text" id="fullname" placeholder="Full Name"><br>
+  <input type="text" id="phone" placeholder="Phone Number"><br>
 
-  <div class="bus-selection">
-    <select id="bus-select">
-      <option value="Bus1-2025-12-20-Accra">Tamale → Accra (20 Dec)</option>
-      <option value="Bus1-2025-12-20-Kumasi">Tamale → Kumasi (20 Dec)</option>
-      <option value="Bus1-2025-12-20-Sunyani">Tamale → Sunyani (20 Dec)</option>
-      <option value="Bus1-2025-12-20-Takoradi">Tamale → Takoradi (20 Dec)</option>
-      <option value="Bus1-2025-12-21-Accra">Tamale → Accra (21 Dec)</option>
-      <option value="Bus1-2025-12-21-Kumasi">Tamale → Kumasi (21 Dec)</option>
-      <option value="Bus1-2025-12-21-Sunyani">Tamale → Sunyani (21 Dec)</option>
-      <option value="Bus1-2025-12-21-Takoradi">Tamale → Takoradi (21 Dec)</option>
-    </select>
+  <label>Travel Date</label>
+  <select id="date">
+    <option value="2025-12-20">20th December</option>
+    <option value="2025-12-21">21st December</option>
+  </select>
+  <p>Boarding Location: <strong>UDS Campus</strong></p>
+  <p>Departure: <strong>7AM</strong></p><br>
+
+  <label>Route</label>
+  <select id="route">
+    <option value="Accra">Accra — ₵240</option>
+    <option value="Kumasi">Kumasi — ₵140</option>
+    <option value="Sunyani">Sunyani — ₵140</option>
+    <option value="Takoradi">Takoradi — ₵240</option>
+  </select>
+
+  <h2>Select Your Seat(s) (1–49)</h2>
+  <div id="seatmap" class="seatmap"></div>
+
+  <div class="summary">
+    <p>Seats Selected: <span id="selectedCount">0</span></p>
+    <p>Total(online charges apply): ₵<span id="total">0</span></p>
   </div>
+  <br>
+  <button id="book">Pay & Book Now</button>
+  </div>
+</div>
 
-  <div id="seat-map"></div>
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h2>Elite Transport — Booking Receipt</h2>
+    <div id="receiptBody"></div>
+    <button id="closeModal">Close</button>
+  </div>
+</div>
 
-  <button id="checkout-btn">Proceed to Pay</button>
+<script type="module">
+// ===== Config =====
+const ROUTE_PRICES = { "Accra": 245, "Kumasi": 143, "Sunyani": 143, "Takoradi": 245 };
+const WORKER_URL = "https://odd-silence-7d6e.elitetransportghana.workers.dev/"; // <--- put your Worker URL here
+const seats = {};
+const selected = new Set();
+const seatmapEl = document.getElementById("seatmap");
+const selectedCountEl = document.getElementById("selectedCount");
+const totalEl = document.getElementById("total");
+const modal = document.getElementById("modal");
+const receiptBody = document.getElementById("receiptBody");
 
-  <script>
-    const seatMap = document.getElementById('seat-map');
-    const busSelect = document.getElementById('bus-select');
-    const checkoutBtn = document.getElementById('checkout-btn');
-    let selectedSeats = [];
+// ===== Snowflakes =====
+const snowflakeCount = 50;
+for(let i=0;i<snowflakeCount;i++){
+  const snow = document.createElement('div');
+  snow.className='snowflake';
+  snow.textContent='❄';
+  snow.style.left=Math.random()*100+'vw';
+  snow.style.fontSize=(Math.random()*20+10)+'px';
+  snow.style.opacity=Math.random()*0.8+0.2;
+  const fallDuration=Math.random()*10+5;
+  const fallDelay=Math.random()*10;
+  const sway=Math.random()*50-25;
+  snow.style.setProperty('--sway', sway+'px');
+  snow.style.animationDuration=fallDuration+'s';
+  snow.style.animationDelay=fallDelay+'s';
+  document.body.appendChild(snow);
+}
 
-    async function loadSeats() {
-      seatMap.innerHTML = '';
-      selectedSeats = [];
-      const busId = busSelect.value;
+// ===== Build Seats =====
+function buildSeats(){
+  seatmapEl.innerHTML = "";
+  for(let i=1;i<=49;i++){
+    seats[i] = seats[i] || {status:"free"};
+    const div = document.createElement("div");
+    div.className="seat";
+    div.dataset.id=i;
+    div.textContent=i;
+    div.addEventListener("click", ()=> selectSeat(i));
+    seatmapEl.appendChild(div);
+    if(i%7===0 && i<49){ const aisle=document.createElement('div'); aisle.className='aisle'; seatmapEl.appendChild(aisle); }
+  }
+}
+function selectSeat(i){
+  if(seats[i].status==="taken") return;
+  if(seats[i].status==="selected"){ seats[i].status="free"; selected.delete(i); }
+  else { seats[i].status="selected"; selected.add(i); }
+  refreshSeatsUI();
+  updateSummary();
+}
 
-      const res = await fetch(`/seats/${busId}`);
-      const seats = await res.json();
+// ===== Fetch Seats from Worker =====
+async function fetchSeats(){
+  const route = document.getElementById("route").value;
+  const date = document.getElementById("date").value;
+  const busId = `${date}_${route}`;
+  const res = await fetch(`${WORKER_URL}/seats/${busId}`);
+  const data = await res.json();
+  for(let i=1;i<=49;i++) seats[i].status="free"; // reset
+  data.forEach(s => seats[s.id] = {status: s.status});
+  refreshSeatsUI();
+}
 
-      seats.forEach(seat => {
-        const div = document.createElement('div');
-        div.classList.add('seat');
-        div.textContent = seat.id;
+// ===== Refresh UI =====
+function refreshSeatsUI(){
+  document.querySelectorAll(".seat").forEach(el=>{
+    const id = parseInt(el.dataset.id);
+    el.classList.remove("selected","taken");
+    if(selected.has(id)) el.classList.add("selected");
+    if(seats[id] && seats[id].status==="locked" || seats[id].status==="booked") el.classList.add("taken");
+  });
+}
+function updateSummary(){
+  const route = document.getElementById("route").value;
+  const price = ROUTE_PRICES[route];
+  selectedCountEl.textContent = selected.size;
+  totalEl.textContent = (selected.size*price).toFixed(2);
+}
 
-        if (seat.status === 'locked') div.classList.add('locked');
-        if (seat.status === 'booked') div.classList.add('booked');
+// ===== Booking =====
+async function lockSeats(busId, seatsArr, user){
+  const res = await fetch(`${WORKER_URL}/lock-seat`,{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ busId, seatId: seatsArr, user })
+  });
+  return res.json();
+}
 
-        div.addEventListener('click', async () => {
-          if (div.classList.contains('locked') || div.classList.contains('booked')) return;
+// ===== Pay & Book =====
+document.getElementById("book").addEventListener("click", async()=>{
+  const name = document.getElementById("fullname").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const date = document.getElementById("date").value;
+  const route = document.getElementById("route").value;
+  if(!name || !phone){ alert("Enter name and phone number"); return; }
+  if(selected.size===0){ alert("Select at least one seat"); return; }
 
-          if (!selectedSeats.includes(seat.id)) {
-            // Lock seat in backend
-            const lockRes = await fetch('/lock-seat', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ busId, seatId: seat.id, user: 'temp-user' })
-            });
-            const data = await lockRes.json();
-            if (data.message === 'Seat locked') {
-              selectedSeats.push(seat.id);
-              div.classList.add('selected');
-            } else {
-              div.classList.add('booked');
-              alert('Seat just got booked by someone else!');
-            }
-          } else {
-            selectedSeats = selectedSeats.filter(s => s !== seat.id);
-            div.classList.remove('selected');
-          }
-        });
+  const seatsArr = Array.from(selected);
+  const busId = `${date}_${route}`;
+  const lockRes = await lockSeats(busId, seatsArr, phone);
+  if(lockRes.message === "Not available"){ alert("Some seats are already taken"); fetchSeats(); return; }
 
-        seatMap.appendChild(div);
-      });
-    }
+  const amount = seatsArr.length * ROUTE_PRICES[route] * 100;
+  let handler = PaystackPop.setup({
+      key: "pk_test_d1cfdee00c5d5743830737d892e4e86705a4d9cd",
+      email: phone+"@example.com",
+      amount,
+      currency:"GHS",
+      ref: 'ET'+Math.floor(Math.random()*1000000000+1),
+      metadata:{ busId, seats: seatsArr, name, phone, route, date },
+      callback: function(response){
+          alert("Payment successful! Your booking is confirmed.");
+          selected.clear();
+          fetchSeats();
+      },
+      onClose: function(){ alert("Payment not completed"); }
+  });
+  handler.openIframe();
+});
 
-    busSelect.addEventListener('change', loadSeats);
-    loadSeats();
+// ===== Listeners =====
+document.getElementById("route").addEventListener("change", ()=>{
+  selected.clear();
+  fetchSeats();
+  updateSummary();
+});
+document.getElementById("date").addEventListener("change", ()=>{
+  selected.clear();
+  fetchSeats();
+  updateSummary();
+});
 
-    checkoutBtn.addEventListener('click', () => {
-      if (selectedSeats.length === 0) return alert('Please select at least one seat');
-
-      // Normally here you would integrate Paystack checkout
-      alert(`Proceeding to Paystack for seats: ${selectedSeats.join(', ')}`);
-    });
-
-    // Snowflake animation
-    function createSnowflake() {
-      const snowflake = document.createElement('div');
-      snowflake.classList.add('snowflake');
-      snowflake.style.left = Math.random() * window.innerWidth + 'px';
-      snowflake.style.fontSize = (Math.random() * 10 + 10) + 'px';
-      snowflake.textContent = '❄';
-      document.body.appendChild(snowflake);
-      setTimeout(() => snowflake.remove(), 10000);
-    }
-    setInterval(createSnowflake, 200);
-  </script>
-
+// ===== Init =====
+buildSeats();
+fetchSeats();
+updateSummary();
+</script>
 </body>
 </html>
