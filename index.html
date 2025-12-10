@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Elite Transport — Christmas Break Bus Booking</title>
 <link rel="icon" type="image/png" href="https://i.ibb.co/Kty8MqP/ELITE-TRANSPORT.png">
-
 <style>
 body {
   font-family: Arial, sans-serif;
@@ -66,7 +65,6 @@ button { background:#0ea5a4; color:white; border:none; cursor:pointer;}
 </div>
 
 <script>
-// ===== Config =====
 const ROUTE_PRICES = { "Accra": 245, "Kumasi": 143, "Sunyani": 143, "Takoradi": 245 };
 const seats = {};
 const selected = new Set();
@@ -74,10 +72,10 @@ const seatmapEl = document.getElementById("seatmap");
 const selectedCountEl = document.getElementById("selectedCount");
 const totalEl = document.getElementById("total");
 
-// ===== Build Seat Map =====
+// Build seats
 function buildSeats() {
   seatmapEl.innerHTML = "";
-  for(let i=1; i<=49; i++){
+  for(let i=1;i<=49;i++){
     seats[i] = seats[i] || {status:"free"};
     const div = document.createElement("div");
     div.className = "seat";
@@ -93,19 +91,16 @@ function buildSeats() {
   }
 }
 
-// ===== Seat Selection =====
+// Select seat
 function selectSeat(i) {
   if(seats[i].status === "taken") return;
-  if(selected.has(i)){
-    selected.delete(i);
-  } else {
-    selected.add(i);
-  }
+  if(selected.has(i)) selected.delete(i);
+  else selected.add(i);
   refreshSeatsUI();
   updateSummary();
 }
 
-// ===== Refresh Seats UI =====
+// Refresh UI
 function refreshSeatsUI() {
   document.querySelectorAll(".seat").forEach(el=>{
     const id = parseInt(el.dataset.id);
@@ -115,7 +110,7 @@ function refreshSeatsUI() {
   });
 }
 
-// ===== Update Summary =====
+// Update summary
 function updateSummary() {
   const route = document.getElementById("route").value;
   const price = ROUTE_PRICES[route];
@@ -123,26 +118,20 @@ function updateSummary() {
   totalEl.textContent = (selected.size * price).toFixed(2);
 }
 
-// ===== Booking with Paystack =====
+// Book & Pay
 document.getElementById("book").addEventListener("click", ()=>{
   const name = document.getElementById("fullname").value.trim();
   const phone = document.getElementById("phone").value.trim();
   const route = document.getElementById("route").value;
   const date = document.getElementById("date").value;
 
-  if(!name || !phone){
-    alert("Enter name and phone number");
-    return;
-  }
-  if(selected.size === 0){
-    alert("Select at least one seat");
-    return;
-  }
+  if(!name || !phone){ alert("Enter name and phone number"); return; }
+  if(selected.size===0){ alert("Select at least one seat"); return; }
 
   const seatsArr = Array.from(selected);
-  const amount = seatsArr.length * ROUTE_PRICES[route] * 100; // in pesewas
+  const amount = seatsArr.length * ROUTE_PRICES[route] * 100; // pesewas
 
-  const handler = PaystackPop.setup({
+  const handler = window.PaystackPop.setup({
     key: "pk_test_d1cfdee00c5d5743830737d892e4e86705a4d9cd",
     email: phone + "@example.com",
     amount: amount,
@@ -151,8 +140,7 @@ document.getElementById("book").addEventListener("click", ()=>{
     metadata: { name, phone, route, date, seats: seatsArr },
     callback: function(response){
       alert("Payment successful! Ref: " + response.reference);
-      // Here you can call your Worker API to finalize seat booking
-      seatsArr.forEach(id=> seats[id].status="taken");
+      seatsArr.forEach(id => seats[id].status = "taken");
       selected.clear();
       refreshSeatsUI();
       updateSummary();
@@ -165,7 +153,7 @@ document.getElementById("book").addEventListener("click", ()=>{
   handler.openIframe();
 });
 
-// ===== Initialize =====
+// Init
 buildSeats();
 refreshSeatsUI();
 updateSummary();
